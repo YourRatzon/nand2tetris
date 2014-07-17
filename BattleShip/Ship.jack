@@ -1,0 +1,93 @@
+class Ship
+{
+	field Array Squares;
+	field String Name;
+	field int size;
+	field int cellsLeft;
+	constructor Ship new(String name, Array sq)
+	{
+	//AC = aircraft carrier, B = battleship, C = cruiser, D = destroyer,
+	//S = submarine
+	
+		var int i;
+		
+		let Name = String.new(name.length() + 1);
+		let i = 0;
+		while (i < name.length())
+		{
+			let Name = Name.appendChar(name.charAt(i));
+			let i = i + 1;
+		}
+		
+		let size = 0;
+		if (name.charAt(0) = 65) // A
+		{
+			let Squares = Array.new(5);
+			let size = 5;
+		}
+		if (name.charAt(0) = 66) // B
+		{
+			let Squares = Array.new(4);
+			let size = 4;
+		}
+		if (name.charAt(0) = 67) // C
+		{
+			let Squares = Array.new(3);
+			let size = 3;
+		}
+		if (name.charAt(0) = 68) // D
+		{
+			let Squares = Array.new(2);
+			let size = 2;
+		}
+		if (name.charAt(0) = 83) // S
+		{
+			let Squares = Array.new(1);
+			let size = 1;
+		}
+		
+		let i = 0;
+		while (i < size)
+		{
+			let Squares[i] = sq[i];
+			let i = i + 1;
+		}
+		
+		let cellsLeft = size;
+		return this;
+	}
+	
+	method int getSize()
+	{ return size; }
+	method Array getSquares()
+	{ return Squares; }
+	
+	
+	method int findCell(int cell)
+	{
+		var int i;
+		let i = 0;
+		
+		while (i < size)
+		{
+			if (Squares[i] = cell)
+			{
+				return i;
+			}
+			let i = i + 1;
+		}
+		return 10;
+	}
+	
+	method int fireCell(int i)
+	{
+		let cellsLeft = cellsLeft - 1;
+		return cellsLeft;
+	}
+/** Deallocate memory */
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+}

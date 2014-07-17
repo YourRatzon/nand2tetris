@@ -1,0 +1,17 @@
+class Pair
+{
+	field int X;
+	field int Y;
+	constructor Pair new(int x, int y)
+	{
+		let X = x;
+		let Y = y;
+		return this;
+	}
+	/** Deallocate memory */
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+}

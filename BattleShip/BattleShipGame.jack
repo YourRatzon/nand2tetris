@@ -1,0 +1,622 @@
+class BattleShipGame 
+{ 
+    // The singleton instance
+    static BattleShipGame instance;
+	static BattleShipBoard gameBoard;
+	field int score;
+	
+	// Keeps track of all the cells occupied by enemy ships.
+	// This array is really a direct addressing table of size 100, with one index for each cell.
+	// Cells are numbered 0-99. Value of 0 means that a cell is empty, value of 1 means that a cell is occupied.
+	field Array enemyCells;
+	
+	// Keeps track of the cells that haven't been shot at yet. Value of 1 means the cells hasn't been fired on.
+	field Array unfiredCells;
+	
+	field Ship A, B, C, D1, D2, S1, S2;
+	field int enemyShipsLeft;
+	field int shotsTaken;
+	field int currentCell;
+	
+	// Will contain all 7 of the enemy ships.
+	field Array enemyShips;
+	
+	
+	constructor BattleShipGame new() 
+	{
+	// 11 * 23 = 253 ( 10 x 10 board needs 11x11 lines )
+	// 253 + 1 = 254 (to start one line below screen boundary)
+		let gameBoard = BattleShipBoard.new(254,254);
+		return this;
+	}
+	
+	 /** Deallocates the object's memory. */
+    method void dispose() 
+	{
+        //do battleShip.dispose();
+		//do board.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+	
+	  /** Creates an instance of BattleShipGame and stores it. */
+    function void newInstance() 
+	{
+        let instance = BattleShipGame.new();
+        return;
+    }
+    
+    /** Returns the single instance of BattleShipGame. */
+    function BattleShipGame getInstance() {
+        return instance;
+    }
+
+	/** Initialize the game. */
+	method String initGame()
+	{
+	
+		var String name;
+		var char input;
+		var int i;
+		var int timer;
+		
+		do Output.moveCursor(0,59);
+		do Output.printString("BS''D");
+		do Output.moveCursor(2,4);
+		let name = Keyboard.readLine("Hello! Please Enter Your Name: ");
+		do Screen.clearScreen();
+		do Output.moveCursor(0,59);
+		do Output.printString("BS''D");
+		do Output.moveCursor(8,14);
+		do Output.printString("Welcome To Battleship!!!"); do Output.println(); do Output.println();
+		do Output.moveCursor(10,14);
+		do Output.printString(name);
+		do Output.printString(", Are you ready to BATTLE!? :)");
+		do Output.println(); do Output.println();
+		do Sys.wait(1);
+		
+		let input = 0;
+		let timer = 0;
+		while (~(input =  89) & ~(input = 81)) // ASCII values for Y and Q
+		{
+			do Output.moveCursor(12,14);
+			do Output.printString("Enter 'Y' to continue or 'Q' to quit:");
+			let input = 0;
+			while (input = 0) 
+			{
+				let input =  Keyboard.keyPressed();
+				let timer = timer + 1;
+			}
+			
+			if (input = 81) // 81 = 'Q'
+			{
+				do Screen.clearScreen();
+				do Output.moveCursor(0,59);
+				do Output.printString("BS''D");
+				do Output.moveCursor(10,14);
+				do Output.printString("Goodbye, "); do Output.printString(name); do Output.printString("!!!");
+				do Sys.wait(10000); do Output.println(); do Output.println();
+				let name = 81; 
+				return name;
+			}
+			if (input = 89) // 89 = 'Y'
+			{
+				// Set the seed for the random number generator based on the timer used above.
+				// The RNG will be used for the computer's random ship placemnet.
+
+				do Random.setSeed(timer);
+				
+				// initialize board including all the enemy ships
+				do initBoard();
+				let enemyShipsLeft = 7;
+				let shotsTaken = 0;		
+				// The board is initialized with cell 44 selected.
+				let currentCell = 44;
+				
+				return name;
+			}
+			else
+			{
+				do Screen.clearScreen(); do Output.println(); do Output.println();
+				do Output.moveCursor(0,59);
+				do Output.printString("BS''D");
+				do Output.moveCursor(10,14);
+				do Output.printString("Invalid Entry!");
+				do Output.println(); do Sys.wait(5000);
+			}
+		} 
+		return name;
+	}
+	
+	/** Initializes the game board. */
+	method void initBoard()
+	{
+		var String name;
+		var int x;
+		var int y;
+		var int i;
+		var int cell;
+		var boolean shipMade;
+		var Array shipCells1, shipCells2, shipCells3, shipCells4;
+		var Array shipCells5, shipCells5, shipCells6, shipCells7;
+		
+		do gameBoard.drawBoard();
+		
+		let enemyCells = Array.new(100); // one index for each cell 0-99
+		let unfiredCells = Array.new(100);
+		let i = 0;
+		while (i < 100)
+		{
+			let unfiredCells[i] = 1;
+			let enemyCells[i] = 0;
+			let i = i + 1;
+		}
+		
+		let enemyShips = Array.new(7);
+		
+		//AIRCRAFT CARRIER
+		let shipCells1 = Array.new(5);
+		let name = String.new(2);
+		let name = name.appendChar(65);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,5);
+			let y = Random.randRange(0,5);
+			
+			let cell = (x * 10) + y;
+			let i = 0;
+			// If the randomly picked cell is even, the ship will be placed horizontally,
+			// otherwise - vertically.
+			if (Utils.mod(cell, 2) = 0)
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 1] = 0) & 
+				(enemyCells[cell + 2] = 0) &
+				(enemyCells[cell + 3] = 0) &
+                (enemyCells[cell + 4] = 0) )
+				{
+					let shipMade = true;
+					// place ship horizontally
+					while (i < 5)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells1[i] = cell + i;
+						let i = i + 1;
+					}
+				}
+			}
+			else
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 10] = 0) & 
+				(enemyCells[cell + 20] = 0) &
+				(enemyCells[cell + 30] = 0) &
+                (enemyCells[cell + 40] = 0) )
+				{
+					let shipMade = true;
+					// place ship vertically
+					while (i < 50)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells1[i / 10] = cell + i;
+						let i = i + 10;
+					}
+				}
+			}
+		}
+		let A = Ship.new(name, shipCells1);
+		let enemyShips[0] = A;
+		
+		//BATTLESHIP
+		do Memory.deAlloc(name);
+		let name = String.new(1);
+		let name = name.appendChar(66);
+		let shipCells2 = Array.new(4);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,6);
+			let y = Random.randRange(0,6);
+			let cell = (x * 10) + y;
+			let i = 0;
+			// If the randomly picked cell is even, the ship will be placed horizontally,
+			// otherwise - vertically.
+			if (Utils.mod(cell, 2) = 0)
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 1] = 0) & 
+				(enemyCells[cell + 2] = 0) &
+				(enemyCells[cell + 3] = 0) )
+				{
+					let shipMade = true;
+					// place ship horizontally
+					while (i < 4)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells2[i] = cell + i;
+						let i = i + 1;
+					}
+				}
+			}
+			else
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 10] = 0) & 
+				(enemyCells[cell + 20] = 0) &
+				(enemyCells[cell + 30] = 0) )
+				{
+					let shipMade = true;
+					// place ship vertically
+					while (i < 40)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells2[i / 10] = cell + i;
+						let i = i + 10;
+					}
+				}
+			}
+		}
+		let B = Ship.new(name, shipCells2);
+		let enemyShips[1] = B;
+		
+		//CRUISER
+		do Memory.deAlloc(name);
+		let name = String.new(2);
+		let name = name.appendChar(67);
+		let shipCells3 = Array.new(3);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,7);
+			let y = Random.randRange(0,7);
+			let cell = (x * 10) + y;
+			let i = 0;
+			// If the randomly picked cell is even, the ship will be placed horizontally,
+			// otherwise - vertically.
+			if (Utils.mod(cell, 2) = 0)
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 1] = 0) & 
+				(enemyCells[cell + 2] = 0) )
+				{
+					let shipMade = true;
+					// place ship horizontally
+					while (i < 3)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells3[i] = cell + i;
+						let i = i + 1;
+					}
+				}
+			}
+			else
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 10] = 0) & 
+				(enemyCells[cell + 20] = 0) )
+				{
+					let shipMade = true;
+					// place ship vertically
+					while (i < 30)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells3[i / 10] = cell + i;
+						let i = i + 10;
+					}
+				}
+			}
+		}
+		let C = Ship.new(name, shipCells3);
+		let enemyShips[2] = C;
+		
+		//DESTROYER 1
+		do Memory.deAlloc(name);
+		let name = String.new(3);
+		let name = name.appendChar(68); // D
+		let name = name.appendChar(49); // 1
+		let shipCells4 = Array.new(2);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,8);
+			let y = Random.randRange(0,8);
+			let cell = (x * 10) + y;
+			let i = 0;
+			// If the randomly picked cell is even, the ship will be placed horizontally,
+			// otherwise - vertically.
+			if (Utils.mod(cell, 2) = 0)
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 1] = 0) )
+				{
+					let shipMade = true;
+					// place ship horizontally
+					while (i < 2)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells4[i] = cell + i;
+						let i = i + 1;
+					}
+				}
+			}
+			else
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 10] = 0) )
+				{
+					let shipMade = true;
+					// place ship vertically
+					while (i < 20)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells4[i / 10] = cell + i;
+						let i = i + 10;
+					}
+				}
+			}
+		}
+		let D1 = Ship.new(name, shipCells4);
+		let enemyShips[3] = D1;
+		
+		//DESTROYER 2
+		do Memory.deAlloc(name);
+		let name = String.new(3);
+		let name = name.appendChar(68); // D
+		let name = name.appendChar(50); // 2
+		let shipCells5 = Array.new(2);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,8);
+			let y = Random.randRange(0,8);
+				
+			let cell = (x * 10) + y;
+			let i = 0;
+			// If the randomly picked cell is even, the ship will be placed horizontally,
+			// otherwise - vertically.
+			if (Utils.mod(cell, 2) = 0)
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 1] = 0) )
+				{
+					let shipMade = true;
+					// place ship horizontally
+					while (i < 2)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells5[i] = cell + i;
+						let i = i + 1;
+					}
+				}
+			}
+			else
+			{
+				// check that the cells are all availble
+				if ( (enemyCells[cell] = 0) &
+				(enemyCells[cell + 10] = 0) )
+				{
+					let shipMade = true;
+					// place ship vertically
+					while (i < 20)
+					{
+						let enemyCells[cell + i] = 1;
+						let shipCells5[i / 10] = cell + i;
+						let i = i + 10;
+					}
+				}
+			}
+		}
+		let D2 = Ship.new(name, shipCells5);
+		let enemyShips[4] = D2;
+		
+		//SUBMARINE 1
+		do Memory.deAlloc(name);
+		let name = String.new(3);
+		let name = name.appendChar(83); // S
+		let name = name.appendChar(49); // 1
+		let shipCells6 = Array.new(1);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,9);
+			let y = Random.randRange(0,9);
+			let cell = (x * 10) + y;
+			let i = 0;
+
+			// check that the cell is available
+			if ( (enemyCells[cell] = 0) )
+			{
+				let shipMade = true;
+				let enemyCells[cell] = 1;
+				let shipCells6[i] = cell;
+			}
+		}
+		let S1 = Ship.new(name, shipCells6);
+		let enemyShips[5] = S1;
+
+		
+		//SUBMARINE 2
+		do Memory.deAlloc(name);
+		let name = String.new(3);
+		let name = name.appendChar(83); // S
+		let name = name.appendChar(49); // 1
+		let shipCells7 = Array.new(1);
+		let shipMade = false;
+		while (~shipMade)
+		{
+			let x = Random.randRange(0,9);
+			let y = Random.randRange(0,9);
+			let cell = (x * 10) + y;
+			let i = 0;
+
+			// check that the cell is available
+			if ( (enemyCells[cell] = 0) )
+			{
+				let shipMade = true;
+				let enemyCells[cell] = 1;
+				let shipCells7[i] = cell;
+			}
+		}
+		let S2 = Ship.new(name, shipCells7);
+		let enemyShips[6] = S2;
+		
+		return;
+	}
+   
+   /** Starts the game. */
+    method void run() 
+	{
+		var String name;
+		var int i;
+		var int seed;
+		var int key;
+
+		
+		let name = initGame();
+
+		if (name = "Q") 
+		{ 
+			do Screen.clearScreen();
+			return; 
+		}
+		
+		while (enemyShipsLeft > 0)
+		{
+			while (key = 0)
+			{ 
+				let key = Keyboard.keyPressed(); 
+			}
+			//       left           up          right         down          space
+			if ( (key = 130) | (key = 131) | (key = 132) | (key = 133) | (key = 32))
+			{
+				do makeMove(key);
+			}
+			do Sys.wait(350);
+			let key = 0;
+		}
+		
+		do Screen.clearScreen();
+		do Output.moveCursor(0,59);
+		do Output.printString("BS''D");
+		do Output.moveCursor(8,14);
+		do Output.printString("You WIN! Congratulations ");
+		do Output.printString(name);
+		do Output.printString("!!!");
+		do Output.moveCursor(10,14);
+		do Output.printString("It only took you ");
+		do Output.printInt(shotsTaken);
+		do Output.printString(" shots.");
+		do Output.moveCursor(12,14);
+		do Output.printString("Try again to win with less shots!!! :)");
+		do Output.moveCursor(14,14);
+		do Output.printString("Thank you for playing BATTLESHIP!");
+
+		
+		return;
+	}
+	
+	method void makeMove(int key)
+	{
+		var int i;
+		var int j;
+		var int foundCellIndex;
+		var int firedCell;
+		var Ship currShip;
+		var Array squares;
+		var int size;
+		
+		//fire if the cells hasn't been fired on yet
+		if ((key = 32) & (unfiredCells[currentCell] = 1))
+		{
+			let unfiredCells[currentCell] = 0;
+			let shotsTaken = shotsTaken + 1;
+			// If the cell is empty, mark it with '/'
+			if (enemyCells[currentCell] = 0)
+			{
+				do gameBoard.markWater(currentCell);
+			}
+			else // The cell is occupied by an enemy ship
+			{	
+				//mark X
+				do gameBoard.markHit(currentCell);
+				
+				//remove cell from hit ship
+				let i = 0;
+				while (i < 7)
+				{
+					let currShip = enemyShips[i];
+					// if found, findCell returns the index of the cell
+					// otherwise, it returns 10
+					let foundCellIndex = currShip.findCell(currentCell);
+					if (~(foundCellIndex = 10))
+					{
+						// when a ship is sunk, fireCell returns 0
+						// regardless of return value, fireCell removes the cell from the ship's array
+						let firedCell = currShip.fireCell(foundCellIndex);
+						
+						if (firedCell = 0)
+						{
+							let squares = currShip.getSquares();
+							do gameBoard.markSunkShip(currShip.getSize(), squares);
+							let enemyShipsLeft = enemyShipsLeft - 1;
+						}
+					}
+					let i = i + 1;
+				}
+			}
+		}
+		//up
+		if (key = 131) 
+		{
+			if (currentCell > 9)
+			{
+				do gameBoard.eraseTarget(currentCell);
+				let currentCell = currentCell - 10;
+				do gameBoard.drawTarget(currentCell);
+			}
+		}
+		//down
+		if (key = 133) 
+		{
+			if (currentCell < 90)
+			{
+				do gameBoard.eraseTarget(currentCell);
+				let currentCell = currentCell + 10;
+				do gameBoard.drawTarget(currentCell);
+			}
+		}
+		//left
+		if (key = 130) 
+		{
+			if (~ (Utils.mod(currentCell, 10) = 0))
+			{
+				do gameBoard.eraseTarget(currentCell);
+				let currentCell = currentCell - 1;
+				do gameBoard.drawTarget(currentCell);
+			}
+		}
+		//right
+		if (key = 132) 
+		{
+			if (~ (Utils.mod(currentCell, 10) = 9))
+			{
+				do gameBoard.eraseTarget(currentCell);
+				let currentCell = currentCell + 1;
+				do gameBoard.drawTarget(currentCell);
+			}
+		}
+		
+		return;
+	}
+
+}

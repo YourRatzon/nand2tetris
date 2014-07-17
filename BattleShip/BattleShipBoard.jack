@@ -1,0 +1,464 @@
+// BattleShip Board
+class BattleShipBoard
+{
+	field int screenX;
+	field int screenY;
+	field boolean D, S;
+
+	/** Creates a new board based on programmer's input.  Also handles basic error checking.
+	input: 2 ints to represent size of board
+	output: this */
+	constructor BattleShipBoard new(int x, int y)
+	{
+		if (x > 256)
+		{
+		  do Output.printString("Invalid x coorindate");
+		  do Output.println();
+		  do Sys.halt();
+		}
+		else
+		{
+		  let screenX = x;
+		}
+
+		if (y > 512)
+		{
+		  do Output.printString("Invalid x coorindate");
+		  do Output.println();
+		  do Sys.halt();
+		}
+		else
+		{
+		  let screenY = y;
+		}
+
+		do Screen.clearScreen();
+		
+		let D = true;
+		let S = true;
+
+		return this;
+	}
+
+	/** Deallocate memory */
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+	method void markWater(int cell)
+	{
+		var int i;
+		var int xCell;
+		var int yCell;
+		var int x1, x2;
+		var int y1;
+		
+		let xCell = Utils.mod(cell, 10);
+		let yCell = cell / 10;
+		let x1 = 24 + (23 * xCell) + 3;
+		let y1 = 24 + (23 * yCell) + 3;
+		let x2 = x1 + 17;
+		
+		do Screen.setColor(true);
+		while (x1 < x2)
+		{
+			do Screen.drawPixel(x1, y1);
+			do Screen.drawPixel(x1 + 1, y1);
+			let x1 = x1 + 1;
+			let y1 = y1 + 1;
+		}
+			
+		return;
+	}
+	method void markHit(int cell)
+	{
+		var int i;
+		var int xCell;
+		var int yCell;
+		var int x1, x2;
+		var int y1;
+		
+		let xCell = Utils.mod(cell, 10);
+		let yCell = cell / 10;
+		let x1 = 24 + (23 * xCell) + 3;
+		let y1 = 24 + (23 * yCell) + 3;
+		let x2 = x1 + 17;
+		
+		do Screen.setColor(true);
+		let i = 0;
+		while (i < 17)
+		{
+			do Screen.drawPixel(x1, y1);
+			do Screen.drawPixel(x1 + 1, y1);
+			do Screen.drawPixel(x1 + 2, y1);
+			do Screen.drawPixel(x2, y1);
+			do Screen.drawPixel(x2 - 1, y1);
+			do Screen.drawPixel(x2 - 2, y1);
+			let x1 = x1 + 1;
+			let x2 = x2 - 1;
+			let y1 = y1 + 1;
+			let i = i + 1;
+		}
+		
+		return;
+	}
+	
+	method void markSunkShip(int size, Array sq)
+	{
+		var int i;
+		var int xCell;
+		var int yCell;
+		var int x1, x2;
+		var int y1, y2;
+		
+		let i = 0;
+		while (i < size)
+		{
+			let xCell = Utils.mod(sq[i], 10);
+			let yCell = sq[i] / 10;
+			let x1 = 24 + (23 * xCell) + 3;
+			let y1 = 24 + (23 * yCell) + 3;
+			let x2 = x1 + 17;
+			let y2 = y1 + 17;
+			
+			do Screen.setColor(true);
+			do Screen.drawRectangle(x1,y1,x2,y2);
+			
+			let i = i + 1;
+		}
+		
+		if (size = 5)
+		{
+			do Screen.drawRectangle(270, 126, 370, 138);
+		}
+		if (size = 4)
+		{
+			do Screen.drawRectangle(270, 172, 350, 184);
+		}
+		if (size = 3)
+		{
+			do Screen.drawRectangle(270, 218, 330, 230);
+		}
+		if (size = 2)
+		{
+			if (D)
+			{
+				do Screen.drawRectangle(390, 172, 430, 184);		
+				let D = false;
+			}
+			else
+			{
+				do Screen.drawRectangle(450, 172, 490, 184);
+			}
+		}
+		if (size = 1)
+		{
+			if (S)
+			{
+				do Screen.drawRectangle(390, 218, 410, 230);
+				let S = false;
+			}
+			else
+			{
+				do Screen.drawRectangle(450, 218, 470, 230);
+			}
+		}
+		
+		return;
+	}
+	
+	method void eraseTarget(int cell)
+	{
+		var int i;
+		var int xCell;
+		var int yCell;
+		var int x1, x2,x3,x4;
+		var int y1, y2,y3,y4;
+		
+		let xCell = Utils.mod(cell, 10);
+		let yCell = cell / 10;
+		let x1 = 24 + (23 * xCell) + 2;
+		let y1 = 24 + (23 * yCell) + 2;
+		let x2 = x1 + 19;
+		let y2 = y1;
+		let x3 = x1;
+		let y3 = y1 + 19;
+		let x4 = x2;
+		let y4 = y3;
+		
+		do Screen.setColor(false);
+		let i = 0;
+		while (i < 7)
+		{
+			do Screen.drawPixel(x1 + i,y1);
+			do Screen.drawPixel(x2 - i,y2);
+			do Screen.drawPixel(x3 + i,y3);
+			do Screen.drawPixel(x4 - i,y4);
+			let i = i + 1;
+		}
+		let i = 1;
+		while (i < 7)
+		{
+			do Screen.drawPixel(x1, y1 + i);
+			do Screen.drawPixel(x2, y2 + i);
+			do Screen.drawPixel(x3, y3 - i);
+			do Screen.drawPixel(x4, y4 - i);
+			let i = i + 1;
+		}
+		return;
+	}
+	method void drawTarget(int cell)
+	{
+		var int i;
+		var int xCell;
+		var int yCell;
+		var int x1, x2,x3,x4;
+		var int y1, y2,y3,y4;
+		
+		let xCell = Utils.mod(cell, 10);
+		let yCell = cell / 10;
+		let x1 = 24 + (23 * xCell) + 2;
+		let y1 = 24 + (23 * yCell) + 2;
+		let x2 = x1 + 19;
+		let y2 = y1;
+		let x3 = x1;
+		let y3 = y1 + 19;
+		let x4 = x2;
+		let y4 = y3;
+		
+		do Screen.setColor(true);
+		let i = 0;
+		while (i < 7)
+		{
+			do Screen.drawPixel(x1 + i,y1);
+			do Screen.drawPixel(x2 - i,y2);
+			do Screen.drawPixel(x3 + i,y3);
+			do Screen.drawPixel(x4 - i,y4);
+			let i = i + 1;
+		}
+		let i = 1;
+		while (i < 7)
+		{
+			do Screen.drawPixel(x1, y1 + i);
+			do Screen.drawPixel(x2, y2 + i);
+			do Screen.drawPixel(x3, y3 - i);
+			do Screen.drawPixel(x4, y4 - i);
+			let i = i + 1;
+		}
+		return;
+	}
+
+	/** Draws a 10 x 10 board */
+	method void drawBoard()
+	{
+		var int i;
+		var int j;
+		var char c;
+		var int x1, x2;
+		var int y1, y2;
+		
+		do Screen.clearScreen();
+		do Output.moveCursor(0,59);
+		do Output.printString("BS''D");
+		do Screen.setColor(true);
+		
+		// draw rows
+		let i = 24;
+		let j = 1;
+		do Output.moveCursor(3,0);
+		while (i < 255)
+		{
+			if (j < 11)
+			{
+				do Output.printString(" ");
+				do Output.printInt(j);
+				do Output.println();
+				do Output.println();
+			}
+			do Screen.drawLine(24,i,254,i);
+			let i = i + 23;
+			let j = j + 1;
+		}
+
+		// draw columns
+		let i = 24;
+		let c = 65;
+		do Output.moveCursor(1,4);
+		while (i < 255)
+		{
+			if (c < 75)
+			{
+				do Output.printChar(c);
+				do Output.printString("  ");
+			}
+			do Screen.drawLine(i,24,i,254);
+			let i = i + 23;
+			let c = c + 1;
+		}
+		
+		// draw Target at cell 44.
+		do drawTarget(44);
+
+		// write instructions
+		do Output.moveCursor(2,42);
+		do Output.printString("BATTLESHIP!!!");
+		do Output.moveCursor(3,34);
+		do Output.printString("Move the circle using Left,");
+		do Output.moveCursor(4,34);
+		do Output.printString("Right, Up and Down arrows.");
+		do Output.moveCursor(5,34);
+		do Output.printString("Press Space to FIRE!");
+		
+		// draw enemy ships
+		do Screen.setColor(true);
+		do Output.moveCursor(8,42);
+		do Output.printString("Enemy Ships:");
+		
+		// aircraft carrier
+		do Output.moveCursor(10,34);
+		do Output.printString("Aircraft Carrier");
+		do Screen.drawLine(270,126,370,126);
+		do Screen.drawLine(270,138,370,138);
+
+		let i = 270;
+		while (i < 371)
+		{
+			do Screen.drawLine(i,126,i,138);
+			let i = i + 20;
+		}
+		
+		// battleship
+		do Output.moveCursor(14,34);
+		do Output.printString("Battleship");
+		do Screen.drawLine(270,172,350,172);
+		do Screen.drawLine(270,184,350,184);
+
+		let i = 270;
+		while (i < 351)
+		{
+			do Screen.drawLine(i,172,i,184);
+			let i = i + 20;
+		}
+		
+		// cruiser
+		do Output.moveCursor(18,34);
+		do Output.printString("Cruiser");
+		do Screen.drawLine(270,218,330,218);
+		do Screen.drawLine(270,230,330,230);
+		
+		let i = 270;
+		while (i < 331)
+		{
+			do Screen.drawLine(i,218,i,230);
+			let i = i + 20;
+		}
+		
+		// two destroyers
+		do Output.moveCursor(14,49);
+		do Output.printString("Destroyers");
+		do Screen.drawLine(390,172,430,172);
+		do Screen.drawLine(390,184,430,184);
+		do Screen.drawLine(450,172,490,172);
+		do Screen.drawLine(450,184,490,184);
+		
+		let i = 390;
+		while (i < 491)
+		{
+			do Screen.drawLine(i,172,i,184);
+			let i = i + 20;
+		}
+		
+		// two submarines
+		do Output.moveCursor(18,49);
+		do Output.printString("Submarines");
+		do Screen.drawLine(390,218,410,218);
+		do Screen.drawLine(390,230,410,230);
+		do Screen.drawLine(450,218,470,218);
+		do Screen.drawLine(450,230,470,230);
+		
+		do Screen.drawLine(390,218,390,230);
+		do Screen.drawLine(410,218,410,230);
+		do Screen.drawLine(450,218,450,230);
+		do Screen.drawLine(470,218,470,230);
+		
+		
+		
+		// draw legend
+		do Screen.drawLine(265,231,510,231);
+		do Screen.drawLine(265,231,265,255);
+		do Output.moveCursor(21, 34);
+		do Output.printString("LEGEND");
+		
+		// water
+		let x1 = 323;
+		let x2 = 346;
+		let y1 = 232;
+		let y2 = 255;
+		
+		do Output.moveCursor(22, 34);
+		do Output.printString("WATER:");
+		do Screen.drawLine(x1,y1,x2,y1);
+		do Screen.drawLine(x1,y2,x2,y2);
+		
+		do Screen.drawLine(x1,y1,x1,y2);
+		do Screen.drawLine(x2,y1,x2,y2);
+		
+		do Screen.setColor(true);
+		
+		let i = 0;
+		while (i < 17)
+		{
+			do Screen.drawPixel(x1+3,   y1+3);
+			do Screen.drawPixel(x1 + 4, y1+3);
+			let x1 = x1 + 1;
+			let y1 = y1 + 1;
+			let i = i + 1;
+		}
+		
+		do Screen.drawLine(265,242,320,242);
+		do Screen.drawLine(320,231,320,242);
+		
+		// hit
+		let x1 = 394;
+		let x2 = 417;
+		let y1 = 232;
+		let y2 = 255;
+		do Output.moveCursor(22, 45);
+		do Output.printString("HIT:");
+		do Screen.drawLine(x1,y1,x2,y1);
+		do Screen.drawLine(x1,y2,x2,y2);
+		
+		do Screen.drawLine(x1,y1,x1,y2);
+		do Screen.drawLine(x2,y1,x2,y2);
+		
+		do Screen.setColor(true);
+		
+		let i = 0;
+		while (i < 17)
+		{
+			do Screen.drawPixel(x1 + 3, y1 + 3);
+			do Screen.drawPixel(x1 + 4, y1 + 3);
+			do Screen.drawPixel(x1 + 5, y1 + 3);
+			do Screen.drawPixel(x2 - 3, y1 + 3);
+			do Screen.drawPixel(x2 - 4, y1 + 3);
+			do Screen.drawPixel(x2 - 5, y1 + 3);
+			let x1 = x1 + 1;
+			let x2 = x2 - 1;
+			let y1 = y1 + 1;
+			let i = i + 1;
+		}
+		
+		// sink
+		let x1 = 480;
+		let x2 = 503;
+		let y1 = 232;
+		let y2 = 255;
+		do Output.moveCursor(22, 54);
+		do Output.printString("SINK:");
+		do Screen.setColor(true);
+		do Screen.drawRectangle(x1,y1,x2,y2);
+		
+		return;
+	}
+}
